@@ -143,6 +143,19 @@ func (c Client) Seeds(chain string) ([]types.PersistentPeerElement, error) {
 	return resp, nil
 }
 
+func (c Client) IBC(source string, destination string) (types.IBC, error) {
+	bz, err := c.get(fmt.Sprintf("%s/v1/ibc/%s-%s", c.registryUrl, source, destination))
+	if err != nil {
+		return types.IBC{}, err
+	}
+	var resp types.IBC
+	err = json.Unmarshal(bz, &resp)
+	if err != nil {
+		return types.IBC{}, err
+	}
+	return resp, nil
+}
+
 func (c Client) get(query string) ([]byte, error) {
 	resp, err := http.Get(query)
 	if err != nil {

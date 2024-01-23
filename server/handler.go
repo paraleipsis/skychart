@@ -19,10 +19,12 @@ type Handler struct {
 	lastUpdated  time.Time
 	chains       []string
 	assets       []string
+	ibc          []string
 	chainByAsset map[string]string // asset name -> chain name
 	chainById    map[string]string // chain id -> chain name
 	chainList    map[string]types.Chain
 	assetList    map[string]types.AssetList
+	ibcList      map[string]types.IBC
 	log          *log.Logger
 }
 
@@ -32,10 +34,12 @@ func NewHandler(registryUrl string, log *log.Logger) *Handler {
 		lastUpdated:  time.Unix(0, 0),
 		chains:       make([]string, 0),
 		assets:       make([]string, 0),
+		ibc:          make([]string, 0),
 		chainByAsset: make(map[string]string),
 		chainById:    make(map[string]string),
 		chainList:    make(map[string]types.Chain),
 		assetList:    make(map[string]types.AssetList),
+		ibcList:      make(map[string]types.IBC),
 		log:          log,
 	}
 }
@@ -154,6 +158,35 @@ func (h Handler) findChain(name string) (bool, types.Chain) {
 	}
 
 	return true, h.chainList[name]
+}
+
+func (h Handler) IBCList(res http.ResponseWriter, req *http.Request) {
+	respondWithJSON(res, h.ibc)
+}
+
+func (h Handler) IBC(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	connectedChains, ok := vars["connection"]
+	if !ok {
+		badRequest(res)
+		return
+	}
+
+	exists, connection := h.findIBC(connectedChains)
+	if !exists {
+		resourceNotFound(res)
+		return
+	}
+	respondWithJSON(res, connection)
+}
+
+func (h Handler) findIBC(connectedChains string) (bool, types.IBC) {
+	connection, ok := h.ibcList[connectedChains]
+	if ok {
+		return true, connection
+	}
+
+	return false, types.IBC{}
 }
 
 func respondWithJSON(w http.ResponseWriter, payload interface{}) {

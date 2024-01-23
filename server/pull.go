@@ -17,6 +17,7 @@ import (
 // - [chain_name]
 //   - chain.json
 //   - assetlist.json
+//
 // It works on a best effort basis. All chain names should be unique. chain.json and
 // assetlist.json should comply with the respective schemas
 // TODO: Add support for relayer paths
@@ -57,6 +58,17 @@ func (h *Handler) Pull(ctx context.Context) error {
 		for _, asset := range assetList.Assets {
 			assets = append(assets, asset.Display)
 			h.chainByAsset[asset.Display] = name
+		}
+	}
+
+	// update ibc
+	if err := h.getIBCList(); err != nil {
+		return err
+	}
+
+	for _, connection := range h.ibc {
+		if err := h.getIBC(connection); err != nil {
+			return err
 		}
 	}
 
@@ -142,6 +154,76 @@ func (h *Handler) getChain(name string) error {
 
 	h.chainList[name] = chain
 	h.chainById[chain.ChainID] = name
+	return nil
+}
+
+func (h *Handler) getIBCList() error {
+	query := fmt.Sprintf("https://api.github.com/repos/%s/contents/_IBC", h.registryUrl)
+	resp, err := http.Get(query)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code from query %s: %d", query, resp.StatusCode)
+	}
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var repo []map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &repo); err != nil {
+		return fmt.Errorf("unmarshalling ibc repo: %w", err)
+	}
+
+	ibcConnections := make([]string, 0)
+	for _, entry := range repo {
+		entryType := entry["type"].(string)
+		if entryType != "file" {
+			continue
+		}
+
+		name := entry["name"].(string)
+		name = strings.Replace(name, ".json", "", -1)
+		ibcConnections = append(ibcConnections, name)
+
+		fmt.Printf("%s, ", name)
+	}
+	fmt.Printf("\n")
+	h.ibc = ibcConnections
+	fmt.Print(len(h.ibc))
+	return nil
+}
+
+func (h *Handler) getIBC(connection string) error {
+	query := fmt.Sprintf("https://raw.githubusercontent.com/%s/master/_IBC/%s.json", h.registryUrl, connection)
+	resp, err := http.Get(query)
+	if err != nil {
+		return err
+	}
+
+	// If the chain.json file doesn't exist we simply ignore it
+	if resp.StatusCode == http.StatusNotFound {
+		return nil
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code from query %s: %d", query, resp.StatusCode)
+	}
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var ibc types.IBC
+	err = json.Unmarshal(bodyBytes, &ibc)
+	if err != nil {
+		return err
+	}
+
+	h.ibcList[connection] = ibc
 	return nil
 }
 

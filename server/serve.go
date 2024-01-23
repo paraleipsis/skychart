@@ -31,6 +31,8 @@ func Serve(ctx context.Context, registryUrl, listenAddr, updateFreq string) erro
 	v1Router.HandleFunc("/chain/{chain}/assets", handler.ChainAsset).Methods("GET")
 	v1Router.HandleFunc("/assets", handler.Assets).Methods("GET")
 	v1Router.HandleFunc("/asset/{asset}", handler.Asset).Methods("GET")
+	v1Router.HandleFunc("/ibc", handler.IBCList).Methods("GET")
+	v1Router.HandleFunc("/ibc/{connection}", handler.IBC).Methods("GET")
 	s := http.Server{Addr: listenAddr, Handler: router}
 
 	errs := make(chan error, 1)
