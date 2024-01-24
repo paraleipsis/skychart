@@ -62,15 +62,15 @@ func (h *Handler) Pull(ctx context.Context) error {
 	}
 
 	// update ibc
-	//if err := h.getIBCList(); err != nil {
-	//	return err
-	//}
-	//
-	//for _, connection := range h.ibc {
-	//	if err := h.getIBC(connection); err != nil {
-	//		return err
-	//	}
-	//}
+	if err := h.getIBCList(); err != nil {
+		return err
+	}
+
+	for _, connection := range h.ibc {
+		if err := h.getIBC(connection); err != nil {
+			return err
+		}
+	}
 
 	// update timestamp
 	h.lastUpdated = time.Now()
