@@ -13,6 +13,7 @@ type Chain struct {
 	Fees         *Fees             `json:"fees,omitempty"`
 	Genesis      *Genesis          `json:"genesis,omitempty"`
 	KeyAlgos     []KeyAlgo         `json:"key_algos,omitempty"`
+	Images       []ImageElement    `json:"images,omitempty"`
 	NetworkType  *NetworkType      `json:"network_type,omitempty"`
 	NodeHome     *string           `json:"node_home,omitempty"`
 	Peers        *Peers            `json:"peers,omitempty"`
@@ -75,6 +76,20 @@ type PersistentPeerElement struct {
 
 type KeyAlgo string
 
+type ImageElement struct {
+	Png          *string       `json:"png,omitempty"`
+	Svg          *string       `json:"svg,omitempty"`
+	Theme        *ImageTheme   `json:"theme,omitempty"`
+	Layout       *Layout       `json:"layout,omitempty"`
+	TextPosition *TextPosition `json:"text_position,omitempty"`
+}
+
+type ImageTheme struct {
+	PrimaryColorHex *string `json:"primary_color_hex,omitempty"`
+	Circle          *bool   `json:"circle,omitempty"`
+	DarkMode        *bool   `json:"dark_mode,omitempty"`
+}
+
 const (
 	Ed25519      KeyAlgo = "ed25519"
 	Ethsecp256K1 KeyAlgo = "ethsecp256k1"
@@ -95,4 +110,22 @@ const (
 	Killed   Status = "killed"
 	Live     Status = "live"
 	Upcoming Status = "upcoming"
+)
+
+type Layout string
+
+const (
+	Logo     Status = "logo"
+	Logomark Status = "logomark"
+	Logotype Status = "logotype"
+)
+
+type TextPosition string
+
+const (
+	Top        Status = "top"
+	Bottom     Status = "bottom"
+	Left       Status = "left"
+	Right      Status = "right"
+	Integrated Status = "integrated"
 )
