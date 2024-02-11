@@ -57,6 +57,9 @@ type Fees struct {
 type FeeTokenElement struct {
 	Denom            string   `json:"denom"`
 	FixedMinGasPrice *float64 `json:"fixed_min_gas_price,omitempty"`
+	LowGasPrice      *float64 `json:"low_gas_price,omitempty"`
+	AverageGasPrice  *float64 `json:"average_gas_price,omitempty"`
+	HighGasPrice     *float64 `json:"high_gas_price,omitempty"`
 }
 
 type Genesis struct {
